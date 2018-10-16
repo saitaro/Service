@@ -1,13 +1,9 @@
-from django.contrib.auth.models import User
-from django.urls import reverse
-from random import randint
 from datetime import datetime, timedelta
-from ..models import Master, Order, Skill
-from ..serializers import OrderSerializer
-from ..views import OrderViewSet
-from .factories import MasterFactory, OrderFactory, UserFactory
 from rest_framework.reverse import reverse as api_reverse
 from rest_framework.test import APIRequestFactory, APITestCase, force_authenticate
+from .factories import MasterFactory, OrderFactory
+from ..models import Order
+from ..serializers import OrderSerializer
 
 
 class OrdersListTestCase(APITestCase):
@@ -22,21 +18,17 @@ class OrdersListTestCase(APITestCase):
         self.service2 = OrderFactory(executor=self.master2).service
 
     def test_masters_orders(self):
-        factory = APIRequestFactory()
-        request = factory.get(self.url)
-        view = OrderViewSet.as_view({'get': 'list'})
-
-        master = self.master1
-        force_authenticate(request, user=master.user)
-        response = view(request)
+        master = self.master2.user
+        self.client.force_authenticate(user=master)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
         self.assertEqual(response.data[0]['executor'], master.pk)
         self.assertEqual(response.data[1]['executor'], master.pk)
-            
-        master = self.master2
-        force_authenticate(request, user=master.user)
-        response = view(request)
+        
+        master = self.master2.user
+        self.client.force_authenticate(user=master)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
         self.assertEqual(response.data[0]['executor'], master.pk)
