@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from rest_framework.reverse import reverse as api_reverse
-from rest_framework.test import APIRequestFactory, APITestCase, force_authenticate
+from rest_framework.test import APITestCase, force_authenticate
 from .factories import MasterFactory, OrderFactory
 from ..models import Order
 from ..serializers import OrderSerializer
@@ -47,14 +47,13 @@ class OrdersListTestCase(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data[0]['client'], client.username)
 
-    def test_admin_access(self): 
-        factory = APIRequestFactory()
-        request = factory.get(self.url)
+    def test_admin_access(self):
         user = self.client1
         user.is_staff = True
         self.client.force_authenticate(user=user)
         response = self.client.get(self.url)
-        orders = OrderSerializer(Order.objects.all(), many=True, context={'request': request})
+        orders = OrderSerializer(Order.objects.all(), many=True,
+                                 context={'request': self.client.request})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, orders.data)
         
@@ -65,7 +64,6 @@ class OrdersListTestCase(APITestCase):
                          'Authentication credentials were not provided.')
 
     def test_user_post(self):
-        order_count = Order.objects.count()
         user = self.client1
         order = {
             'service': self.service1.pk,
@@ -73,6 +71,7 @@ class OrdersListTestCase(APITestCase):
             'execution_date': datetime.now() + timedelta(days=1)
         }
         self.client.force_authenticate(user=user)
+        order_count = Order.objects.count()
         response = self.client.post(self.url, order)
         self.assertEqual(Order.objects.count(), order_count + 1)
         new_order = Order.objects.last()
