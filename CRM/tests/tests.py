@@ -14,19 +14,19 @@ class OrdersListTestCase(APITestCase):
     url = api_reverse('order-list')
 
     def setUp(self):
-        master1, master2 = MasterFactory(), MasterFactory()
-        OrderFactory(executor=master1), OrderFactory(executor=master1)
-        OrderFactory(executor=master2), OrderFactory(executor=master2)
-        self.assertEqual(Master.objects.count(), 2)
-        self.assertEqual(Order.objects.count(), 4)
-        self.assertEqual(User.objects.count(), 6)
+        self.master1 = MasterFactory()
+        self.master2 = MasterFactory()
+        self.client1 = OrderFactory(executor=self.master1).client
+        self.client2 = OrderFactory(executor=self.master2).client
+        self.service1 = OrderFactory(executor=self.master1).service
+        self.service2 = OrderFactory(executor=self.master2).service
 
     def test_masters_orders(self):
         factory = APIRequestFactory()
         request = factory.get(self.url)
         view = OrderViewSet.as_view({'get': 'list'})
 
-        master = Master.objects.first()
+        master = self.master1
         force_authenticate(request, user=master.user)
         response = view(request)
         self.assertEqual(response.status_code, 200)
@@ -34,7 +34,7 @@ class OrdersListTestCase(APITestCase):
         self.assertEqual(response.data[0]['executor'], master.pk)
         self.assertEqual(response.data[1]['executor'], master.pk)
             
-        master = Master.objects.last()
+        master = self.master2
         force_authenticate(request, user=master.user)
         response = view(request)
         self.assertEqual(response.status_code, 200)
@@ -43,43 +43,25 @@ class OrdersListTestCase(APITestCase):
         self.assertEqual(response.data[1]['executor'], master.pk)
 
     def test_clients_orders(self):
-        factory = APIRequestFactory()
-        request = factory.get(self.url)
-        view = OrderViewSet.as_view({'get': 'list'})
-        masters = Master.objects.all().values_list('user__pk', flat=True)
-        clients = User.objects.exclude(id__in=masters)
+        client = self.client1
+        self.client.force_authenticate(user=client)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data[0]['client'], client.username)
         
-        user = clients[0]
-        force_authenticate(request, user=user)
-        response = view(request)
+        client = self.client2
+        self.client.force_authenticate(user=client)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data[0]['client'], user.username)
-        
-        user = clients[1]
-        force_authenticate(request, user=user)
-        response = view(request)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data[0]['client'], user.username)
-
-        user = clients[2]
-        force_authenticate(request, user=user)
-        response = view(request)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data[0]['client'], user.username)
-
-        user = clients[3]
-        force_authenticate(request, user=user)
-        response = view(request)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data[0]['client'], user.username)
+        self.assertEqual(response.data[0]['client'], client.username)
 
     def test_admin_access(self): 
-        view = OrderViewSet.as_view({'get': 'list'})
-        user = UserFactory(is_staff=True)
         factory = APIRequestFactory()
         request = factory.get(self.url)
-        force_authenticate(request, user=user)
-        response = view(request)
+        user = self.client1
+        user.is_staff = True
+        self.client.force_authenticate(user=user)
+        response = self.client.get(self.url)
         orders = OrderSerializer(Order.objects.all(), many=True, context={'request': request})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, orders.data)
@@ -92,10 +74,10 @@ class OrdersListTestCase(APITestCase):
 
     def test_user_post(self):
         order_count = Order.objects.count()
-        user = User.objects.create_user(username='Masha')
+        user = self.client1
         order = {
-            'service': randint(1, Skill.objects.count()),
-            'executor': randint(1, Master.objects.count()),
+            'service': self.service1.pk,
+            'executor': self.master1.pk,
             'execution_date': datetime.now() + timedelta(days=1)
         }
         self.client.force_authenticate(user=user)
@@ -107,4 +89,27 @@ class OrdersListTestCase(APITestCase):
         self.assertEqual(new_order.executor.pk, order['executor'])
         self.assertEqual(new_order.execution_date.ctime(), order['execution_date'].ctime())
         
+    def test_admin_post(self):
+        user = self.client1
+        user.is_staff = True
+        order = {
+            'service': self.service2.pk,
+            'executor': self.master1.pk,
+            'execution_date': datetime.now() + timedelta(days=1)
+        }
+        self.client.force_authenticate(user=user)
+        response = self.client.post(self.url, order)
+        self.assertEqual(response.status_code, 403)
+        
+    def test_master_post(self):
+        user = self.master1.user
+        order = {
+            'service': self.service1.pk,
+            'executor': self.master2.pk,
+            'execution_date': datetime.now() + timedelta(days=1)
+        }
+        self.client.force_authenticate(user=user)
+        response = self.client.post(self.url, order)
+        self.assertEqual(response.status_code, 403)
+
 
