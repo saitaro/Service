@@ -91,6 +91,8 @@ class OrdersListTestCase(APITestCase):
         self.client.force_authenticate(user=user)
         response = self.client.post(self.url, order)
         self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()['detail'],
+                         'You do not have permission to perform this action.')
         
     def test_master_post(self):
         user = self.master1.user
@@ -102,5 +104,7 @@ class OrdersListTestCase(APITestCase):
         self.client.force_authenticate(user=user)
         response = self.client.post(self.url, order)
         self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()['detail'],
+                         'You do not have permission to perform this action.')
 
 
