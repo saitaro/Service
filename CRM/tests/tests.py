@@ -18,7 +18,7 @@ class OrdersListTestCase(APITestCase):
         self.service2 = OrderFactory(executor=self.master2).service
 
     def test_masters_orders(self):
-        master = self.master2.user
+        master = self.master1.user
         self.client.force_authenticate(user=master)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
