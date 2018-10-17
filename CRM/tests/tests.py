@@ -116,6 +116,7 @@ class OrdersListTestCase(APITestCase):
         self.client.force_authenticate(user=client)
         response = self.client.get(self.url + '?service__name=Foo')     
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['service'], foo.pk)
 
 
