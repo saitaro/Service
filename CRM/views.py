@@ -14,6 +14,12 @@ class OrderViewSet(ModelViewSet):
     serializer_class = OrderSerializer
     filter_fields = 'service__name',
     filter_backends = PermissionFilterBackend, DjangoFilterBackend
+    
+    def get_queryset(self):
+        service = self.request.query_params.get('service')
+        if service:
+            return Order.objects.filter(service__name=service)
+        return Order.objects.all()
 
     def get_permissions(self):
         if self.action in ['detail', 'list']:
