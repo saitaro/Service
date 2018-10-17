@@ -1,14 +1,8 @@
-from django.shortcuts import render
 from django.contrib.auth.models import User
-from django.http import HttpResponse
-from django.urls import reverse
-from .models import Master, Order, Company, Skill
-from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.generics import CreateAPIView, ListAPIView
-from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
-from django_filters import rest_framework
+from django_filters.rest_framework import DjangoFilterBackend
+from .models import Master, Order, Company, Skill
 from .filter_backends import PermissionFilterBackend
 from .permissions import ClientPermission
 from .serializers import (UserSerializer, CompanySerializer, MasterSerializer,
@@ -18,7 +12,8 @@ from .serializers import (UserSerializer, CompanySerializer, MasterSerializer,
 class OrderViewSet(ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    filter_backends = PermissionFilterBackend,
+    filter_fields = 'service__name',
+    filter_backends = PermissionFilterBackend, DjangoFilterBackend
 
     def get_permissions(self):
         if self.action in ['detail', 'list']:
