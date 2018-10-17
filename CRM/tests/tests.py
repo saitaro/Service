@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from rest_framework.reverse import reverse as api_reverse
 from rest_framework.test import APITestCase, force_authenticate
-from .factories import MasterFactory, OrderFactory
+from .factories import MasterFactory, OrderFactory, SkillFactory
 from ..models import Order
 from ..serializers import OrderSerializer
 
@@ -106,5 +106,16 @@ class OrdersListTestCase(APITestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json()['detail'],
                          'You do not have permission to perform this action.')
+
+    def test_filtered_orders(self):
+        client = self.client1
+        foo = SkillFactory(name='Foo')
+        bar = SkillFactory(name='Bar')
+        OrderFactory(service=foo, client=client)
+        OrderFactory(service=bar, client=client)
+        self.client.force_authenticate(user=client)
+        response = self.client.get(self.url + '?service__name=Foo')     
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data[0]['service'], foo.pk)
 
 
