@@ -56,5 +56,5 @@ class Order(models.Model):
             str(self.pk), self.service, self.executor, self.client
         )
 
-    def get_skill(self):
-        return self.service
+
+        
