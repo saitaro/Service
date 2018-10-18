@@ -20,6 +20,9 @@ class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = '__all__'
+
+    def to_representation(self):
+        return 'pooook'
         
 
 class MasterSerializer(serializers.ModelSerializer):
@@ -30,13 +33,16 @@ class MasterSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     client = serializers.CharField(default=serializers.CurrentUserDefault())
-    service_url = serializers.CharField(read_only=True)
+    executor_name = serializers.CharField(source='executor.user.username', read_only=True)
+    service_name = serializers.CharField(source='service.name', read_only=True)
+
     class Meta:
         model = Order
-        fields = 'client', 'service', 'executor', 'execution_date', 'service_url'
+        fields = ('client', 'service', 'service_name', 'executor',
+                  'executor_name', 'execution_date')
         extra_kwargs = {
-            'executor': {'required': True},
-            # 'execution_date': {'required': True},
+            'executor': {'required': True, 'label': 'master_id'},
+            # 'service': {'required': True},
         }
 
 

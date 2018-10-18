@@ -109,14 +109,17 @@ class OrdersListTestCase(APITestCase):
 
     def test_filtered_orders(self):
         client = self.client1
+        master = self.master1
         foo = SkillFactory(name='Foo')
         bar = SkillFactory(name='Bar')
+        OrderFactory(service=foo, client=client, executor=master)
         OrderFactory(service=foo, client=client)
         OrderFactory(service=bar, client=client)
         self.client.force_authenticate(user=client)
-        response = self.client.get(self.url + '?service=Foo')     
+        response = self.client.get(self.url + '?service=Foo&master=' + master.user.username)     
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['service'], foo.pk)
+        self.assertEqual(response.data[0]['executor'], master.pk)
 
 
