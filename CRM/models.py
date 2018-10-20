@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datetime import datetime, timedelta
+from django.utils.timezone import now
 
 
 class Company(models.Model):
@@ -49,7 +50,7 @@ class Order(models.Model):
     service = models.ForeignKey(Skill, related_name='orders', on_delete=models.CASCADE)
     executor = models.ForeignKey(Master, related_name='jobs', on_delete=models.CASCADE)
     creation_date = models.DateTimeField(auto_now_add=True)
-    execution_date = models.DateTimeField(default=datetime.now()+timedelta(days=1), blank=False)
+    execution_date = models.DateTimeField(blank=False)
 
     def __str__(self):
         return '{} – {} by {} for {}'.format(

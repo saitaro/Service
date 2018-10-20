@@ -20,9 +20,6 @@ class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = '__all__'
-
-    def to_representation(self):
-        return 'pooook'
         
 
 class MasterSerializer(serializers.ModelSerializer):
@@ -41,8 +38,7 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ('client', 'service', 'service_name', 'executor',
                   'executor_name', 'execution_date')
         extra_kwargs = {
-            'executor': {'required': True, 'label': 'master_id'},
-            # 'service': {'required': True},
+            'executor': {'required': True, 'label': 'Master'},
         }
 
 
