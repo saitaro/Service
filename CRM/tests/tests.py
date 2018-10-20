@@ -126,17 +126,20 @@ class OrdersListTestCase(APITestCase):
         user = self.client1
         user.is_staff = True
         foo = SkillFactory(name='Comfortably Numb')
+        bar = SkillFactory(name='Portably Null')
         OrderFactory(service=foo)
+        OrderFactory(service=bar)
         self.client.force_authenticate(user=user)
         
-        response = self.client.get(self.url + '?service=Comfortably Numb')     
+        response = self.client.get(self.url + '?service=Comfortably+Numb')     
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['service'], foo.pk)
 
         response = self.client.get(self.url + '?service_search=ortably+Nu')     
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data), 2)
         self.assertEqual(response.data[0]['service'], foo.pk)
+        self.assertEqual(response.data[1]['service'], bar.pk)
 
 
