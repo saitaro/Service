@@ -14,7 +14,7 @@ from .serializers import (UserSerializer, CompanySerializer, MasterSerializer,
 
 def registration(request):
     if request.method == 'POST':
-        user = User.objects.create(
+        user = User.objects.create_user(
             username=request.POST['user'],
             password=request.POST['password'],
         )
