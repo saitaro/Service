@@ -143,13 +143,16 @@ class OrdersListTestCase(APITestCase):
         self.assertEqual(response.data[0]['service'], foo.pk)
         self.assertEqual(response.data[1]['service'], bar.pk)
 
+
+class UserTestCase(APITestCase):
+
     def test_user_creation(self):
         url = api_reverse('register')
         data = {
             'username': 'Hitler',
+            'password': 'germanyfirst123'
         }
-        self.client.post(url, data=data)
+        post = self.client.post(url, data=data)
         self.assertTrue(User.objects.filter(username='Hitler').exists())
 
 
-        

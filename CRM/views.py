@@ -3,6 +3,9 @@ from django.db.models import Q
 from django.shortcuts import redirect
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Master, Order, Company, Skill
 from .filter_backends import PermissionFilterBackend
@@ -11,9 +14,6 @@ from .permissions import ClientPermission
 from .serializers import (UserSerializer, CompanySerializer, MasterSerializer,
                           SkillSerializer, OrderSerializer)
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 
 
 class RegistrationView(APIView):
@@ -24,21 +24,11 @@ class RegistrationView(APIView):
     
     def post(self, request, format=None):
         serializer = UserSerializer(data=request.data, context={'request': request})
+        print(request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# def registration(request):
-#     if request.method == 'POST':
-#         user = User.objects.create_user(
-#             username=request.POST['user'],
-#             password=request.POST['password'],
-#         )
-#         user.save()
-#         print('hello----')
-#     return redirect('/')
 
 
 class OrderViewSet(ModelViewSet):
