@@ -5,7 +5,7 @@ from rest_framework.fields import CurrentUserDefault
 
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(default='defaultpass123')
+    password = serializers.CharField(default='defaultpass')
 
     class Meta:
         model = User
