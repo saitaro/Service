@@ -152,7 +152,17 @@ class UserTestCase(APITestCase):
             'username': 'Hitler',
             'password': 'germanyfirst123'
         }
-        post = self.client.post(url, data=data)
+        self.client.post(url, data=data)
         self.assertTrue(User.objects.filter(username='Hitler').exists())
+
+
+    def test_user_creation_alt(self):
+        url = api_reverse('user-create')
+        data = {
+            'username': 'Stalin',
+            'password': 'gocommiego'
+        }
+        post = self.client.post(url, data=data)
+        self.assertTrue(User.objects.filter(username='Stalin').exists())
 
 

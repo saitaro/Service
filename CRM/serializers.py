@@ -5,11 +5,10 @@ from rest_framework.fields import CurrentUserDefault
 
 
 class UserSerializer(serializers.ModelSerializer):
-    # username = serializers.CharField(read_only=True)
-
     class Meta:
         model = User
         fields = 'url', 'username', 'email', 'groups'
+        extra_kwargs = {'user': {'required': False}}
 
 
 class CompanySerializer(serializers.ModelSerializer):

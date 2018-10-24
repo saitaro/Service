@@ -15,7 +15,6 @@ from .serializers import (UserSerializer, CompanySerializer, MasterSerializer,
                           SkillSerializer, OrderSerializer)
 
 
-
 class RegistrationView(APIView):
     permission_classes = AllowAny,
 
@@ -24,7 +23,6 @@ class RegistrationView(APIView):
     
     def post(self, request, format=None):
         serializer = UserSerializer(data=request.data, context={'request': request})
-        print(request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -59,7 +57,13 @@ class OrderViewSet(ModelViewSet):
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
-    permission_classes = IsAuthenticated,
+
+    def get_permissions(self):
+        if self.action == 'create':
+            permission_classes = AllowAny,
+        else:
+            permission_classes = IsAuthenticated,
+        return [permission() for permission in permission_classes]
 
 
 class CompanyViewSet(ModelViewSet):

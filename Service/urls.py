@@ -15,7 +15,8 @@ urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^admin/', admin.site.urls),
     url(r'^api-auth/', include('rest_framework.urls'), name='api'),
-    url('^register/', RegistrationView.as_view(), name='register')
+    url('^register/', RegistrationView.as_view(), name='register'),
+    url('^regi/', UserViewSet.as_view({'post': 'create'}), name='user-create'),
 ]
 
 
