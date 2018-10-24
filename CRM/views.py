@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Master, Order, Company, Skill
 from .filter_backends import PermissionFilterBackend
@@ -37,18 +38,7 @@ class OrderViewSet(ModelViewSet):
     serializer_class = OrderSerializer
     filter_backends = PermissionFilterBackend, DjangoFilterBackend
     filterset_class = OrderFilter
-    # filterset_fields = 'service__name', 'executor__user__username'
-
-    # def get_queryset(self):
-    #     service = self.request.query_params.get('service')
-    #     master = self.request.query_params.get('master')
-    #     condition = []
-    #     if service:
-    #         condition.append(Q(service__name=service))
-    #     if master:
-    #         condition.append(Q(executor__user__username=master))
-    #     return self.queryset.filter(*condition) 
-
+    
     def get_permissions(self):
         if self.action in ['detail', 'list']:
             permission_classes = IsAuthenticated,
@@ -67,6 +57,17 @@ class UserViewSet(ModelViewSet):
         else:
             permission_classes = IsAuthenticated,
         return [permission() for permission in permission_classes]
+
+    def create(self, request):
+        serializer = UserSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            user = User.objects.get(username=serializer.data['username'])
+            user.set_password(serializer.data['password'])
+            user.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CompanyViewSet(ModelViewSet):
