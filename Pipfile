@@ -8,6 +8,7 @@ djangorestframework = "*"
 django = "==1.11"
 django-filter = "*"
 factory-boy = "*"
+requests = "*"
 
 [dev-packages]
 
