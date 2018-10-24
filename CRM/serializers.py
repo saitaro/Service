@@ -5,9 +5,11 @@ from rest_framework.fields import CurrentUserDefault
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(default='defaultpass123')
+
     class Meta:
         model = User
-        fields = 'url', 'username', 'email', 'groups'
+        fields = 'url', 'username', 'email', 'groups', 'password'
         extra_kwargs = {'user': {'required': False}}
 
 
