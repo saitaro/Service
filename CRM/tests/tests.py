@@ -3,6 +3,7 @@ from rest_framework.reverse import reverse as api_reverse
 from rest_framework.test import APITestCase, force_authenticate
 from .factories import MasterFactory, OrderFactory, SkillFactory
 from ..models import Order
+from django.contrib.auth.models import User
 from ..serializers import OrderSerializer
 
 
@@ -142,4 +143,13 @@ class OrdersListTestCase(APITestCase):
         self.assertEqual(response.data[0]['service'], foo.pk)
         self.assertEqual(response.data[1]['service'], bar.pk)
 
+    def test_user_creation(self):
+        url = api_reverse('register')
+        data = {
+            'username': 'Hitler',
+        }
+        self.client.post(url, data=data)
+        self.assertTrue(User.objects.filter(username='Hitler').exists())
 
+
+        

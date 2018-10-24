@@ -1,8 +1,8 @@
 import requests
 
 data = {
-    'user': 'Chevy',
-    'password': 'pass1234',
+    'username': 'Chevy',
+    # 'password': 'pass1234',
 }
 
 r = requests.post(
@@ -15,4 +15,6 @@ r = requests.post(
 )
 
 print(r)
+print(r.text)
+
 
