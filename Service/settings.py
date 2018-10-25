@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'CRM',
     'rest_framework',
     'django_filters',
+    # 'oauth2_provider',
 ]
 
 MIDDLEWARE = [
@@ -133,5 +134,12 @@ REST_FRAMEWORK = {
         # 'rest_framework.permissions.IsAuthenticated',
     ],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
-    
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        # 'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    )
 }
+
+# OAUTH2_PROVIDER = {
+#     # this is the list of available scopes
+#     'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'}
+# }

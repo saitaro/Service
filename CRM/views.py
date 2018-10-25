@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
-from django.db.models import Q
 from django.shortcuts import redirect
+# from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
@@ -71,7 +71,10 @@ class UserViewSet(ModelViewSet):
 class CompanyViewSet(ModelViewSet):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
-    permission_classes = IsAuthenticated,
+    permission_classes = (
+        IsAuthenticated, 
+        # TokenHasScope,
+    )
 
 
 class MasterViewSet(ModelViewSet):
