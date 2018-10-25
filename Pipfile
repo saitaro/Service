@@ -9,6 +9,7 @@ django = "==1.11"
 django-filter = "*"
 factory-boy = "*"
 requests = "*"
+django-oauth-toolkit = "*"
 
 [dev-packages]
 

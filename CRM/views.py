@@ -25,9 +25,8 @@ class RegistrationView(APIView):
     def post(self, request, format=None):
         serializer = UserSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
-            user = User.objects.get(username=serializer.data['username'])
-            user.set_password(serializer.data['password'])
+            user = serializer.save()
+            user.set_password(user.password)
             user.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -61,9 +60,8 @@ class UserViewSet(ModelViewSet):
     def create(self, request):
         serializer = UserSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
-            user = User.objects.get(username=serializer.data['username'])
-            user.set_password(serializer.data['password'])
+            user = serializer.save()
+            user.set_password(user.password)
             user.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
