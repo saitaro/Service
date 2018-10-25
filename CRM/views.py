@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 from django.db.models import Q
 from django.shortcuts import redirect
 from rest_framework.viewsets import ModelViewSet
@@ -64,8 +65,7 @@ class UserViewSet(ModelViewSet):
             user.set_password(user.password)
             user.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CompanyViewSet(ModelViewSet):
