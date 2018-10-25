@@ -6,31 +6,25 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Master, Order, Company, Skill
 from .filter_backends import PermissionFilterBackend
 from .filters import OrderFilter
 from .permissions import ClientPermission
+from .mixins import CreationMixin
 from .serializers import (UserSerializer, CompanySerializer, MasterSerializer,
                           SkillSerializer, OrderSerializer)
 
 
-class RegistrationView(APIView):
+class RegistrationView(APIView, CreationMixin):
     permission_classes = AllowAny,
 
     def get(self, request, format=None):
         return redirect('/')
     
     def post(self, request, format=None):
-        serializer = UserSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid():
-            user = serializer.save()
-            user.set_password(user.password)
-            user.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return super().create_user(request)
 
 
 class OrderViewSet(ModelViewSet):
@@ -47,7 +41,7 @@ class OrderViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-class UserViewSet(ModelViewSet):
+class UserViewSet(ModelViewSet, CreationMixin):
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
 
@@ -59,13 +53,7 @@ class UserViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def create(self, request):
-        serializer = UserSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid():
-            user = serializer.save()
-            user.set_password(user.password)
-            user.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return super().create_user(request)
 
 
 class CompanyViewSet(ModelViewSet):
