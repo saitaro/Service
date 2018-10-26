@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
+from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 from .models import Master, Order, Company, Skill
 from .filter_backends import PermissionFilterBackend
 from .filters import OrderFilter
@@ -17,7 +18,7 @@ from .serializers import (UserSerializer, CompanySerializer, MasterSerializer,
                           SkillSerializer, OrderSerializer)
 
 
-class RegistrationView(APIView, CreationMixin):
+class RegistrationView(CreationMixin, APIView):
     permission_classes = AllowAny,
 
     def get(self, request, format=None):
@@ -41,7 +42,7 @@ class OrderViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-class UserViewSet(ModelViewSet, CreationMixin):
+class UserViewSet(CreationMixin, ModelViewSet):
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
 
@@ -61,7 +62,7 @@ class CompanyViewSet(ModelViewSet):
     serializer_class = CompanySerializer
     permission_classes = (
         IsAuthenticated, 
-        # TokenHasScope,
+        TokenHasReadWriteScope,
     )
 
 

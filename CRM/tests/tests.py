@@ -62,7 +62,7 @@ class OrdersListTestCase(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.json()['detail'], 
-                         'You do not have permission to perform this action.')
+                         'Authentication credentials were not provided.')
 
     def test_user_post(self):
         user = self.client1

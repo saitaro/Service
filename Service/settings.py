@@ -38,9 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'CRM',
+    'oauth2_provider',
     'rest_framework',
     'django_filters',
-    # 'oauth2_provider',
 ]
 
 MIDDLEWARE = [
@@ -134,12 +134,17 @@ REST_FRAMEWORK = {
         # 'rest_framework.permissions.IsAuthenticated',
     ],
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-    )
+    # 'DEFAULT_AUTHENTICATION_CLASSES': ( 
+    # # This won't let login to DRF GUI
+    #     'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    # )
 }
 
-# OAUTH2_PROVIDER = {
-#     # this is the list of available scopes
-#     'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'}
-# }
+OAUTH2_PROVIDER = {
+    # this is the list of available scopes
+    'SCOPES': {
+        'read': 'Read scope', 
+        'write': 'Write scope', 
+        'groups': 'Access to your groups'
+    }
+}
