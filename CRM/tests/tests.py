@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from ..serializers import OrderSerializer
 
 
-class OrdersListTestCase(APITestCase):
+class OrderTestCase(APITestCase):
     url = api_reverse('order-list')
 
     def setUp(self):
@@ -15,8 +15,8 @@ class OrdersListTestCase(APITestCase):
         self.master2 = MasterFactory()
         self.client1 = OrderFactory(executor=self.master1).client
         self.client2 = OrderFactory(executor=self.master2).client
-        self.service1 = OrderFactory(executor=self.master1).service
-        self.service2 = OrderFactory(executor=self.master2).service
+        self.service1 = OrderFactory(service=self.master1).service
+        self.service2 = OrderFactory(service=self.master2).service
 
     def test_masters_orders(self):
         master = self.master1.user
@@ -60,7 +60,7 @@ class OrdersListTestCase(APITestCase):
         
     def test_unauthorized_access(self):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json()['detail'], 
                          'Authentication credentials were not provided.')
 

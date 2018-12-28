@@ -10,8 +10,13 @@ factory-boy = "*"
 requests = "*"
 django-oauth-toolkit = "*"
 django = "*"
+django-rest-swagger = "*"
+django-cors-headers = "*"
+"psycopg2" = "*"
+django-rest-framework = "*"
 
 [dev-packages]
+black = "*"
 
 [requires]
 python_version = "3.6"

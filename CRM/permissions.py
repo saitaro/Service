@@ -8,5 +8,3 @@ class ClientPermission(BasePermission):
         is_master = Master.objects.filter(user=user).exists()
         return not (is_master or user.is_staff)
 
-
-        

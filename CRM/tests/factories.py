@@ -1,10 +1,11 @@
 from django.contrib.auth.models import User
-from ..models import Master, Order, Skill, Company
+from ..models import Master, Order, Skill, Service, Company
 import factory
 from factory.django import DjangoModelFactory
 from random import randint
 from factory import fuzzy
 from django.utils import timezone
+from datetime import timedelta
 
 
 class UserFactory(DjangoModelFactory):
@@ -40,6 +41,14 @@ class MasterFactory(DjangoModelFactory):
         for _ in range(randint(1,4)):
             self.skills.add(SkillFactory())
 
+class ServiceFactory(DjangoModelFactory):
+    class Meta:
+        model = Service
+        
+    master = factory.SubFactory(MasterFactory)
+    skill = factory.SubFactory(SkillFactory)
+    price = fuzzy.FuzzyInteger(low=50, high=500)
+    task_time = timedelta(days=randint(1, 10))
 
 class OrderFactory(DjangoModelFactory):
     class Meta:
