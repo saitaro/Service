@@ -13,10 +13,7 @@ from CRM.views import (
     OrderViewSet,
     ServiceViewSet,
     RegistrationView,
-    # catalog,
-    # services,
     CatalogView,
-    # ServicesView,
 )
 
 router = routers.DefaultRouter()
@@ -36,10 +33,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api-auth/", include("rest_framework.urls"), name="api"),
     path("register/", RegistrationView.as_view(), name="register"),
-    path("regi/", UserViewSet.as_view({"post": "create"}), name="user-create"),
-    # path("catalog/<int:pk>/", catalog, name="catalog"),
-    # path("services/", services, name="services"),
     path("catalog/<pk>/", CatalogView.as_view(), name="catalog"),
-    # path("services/", ServicesView.as_view(), name="services"),
 ]
 

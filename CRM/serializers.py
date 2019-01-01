@@ -54,11 +54,6 @@ class MasterSerializer(serializers.ModelSerializer):
         fields = "id", "name", "catalog", "average_price"
 
 
-class PersonnelSerializer(serializers.Serializer):
-    user__username = serializers.CharField()
-    skills = serializers.IntegerField()
-
-
 class ServiceSerializer(serializers.ModelSerializer):
     skill = serializers.CharField(source="skill.name")
     master = serializers.CharField(source="master.user.username")
@@ -79,9 +74,3 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = "client", "service_id", "service", "execution_date"
 
-    # def create(self, validated_data):
-    #     service_id = validated_data.get("service")["id"]
-    #     print(self, "=================================================")
-    #     validated_data["service"] = Service.objects.get(pk=service_id)
-    #     validated_data["client_id"] = 3
-    #     return Order.objects.create(**validated_data)
