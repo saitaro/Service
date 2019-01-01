@@ -3,13 +3,16 @@ from .models import Order
 
 
 class OrderFilter(FilterSet):
-    master = CharFilter(field_name="executor__user__username")
-    service = CharFilter(field_name="service__name")
-    service_search = CharFilter(field_name="service__name", lookup_expr='icontains')
+    master = CharFilter(
+        label="Master",
+        field_name="service__master__user__username",
+        lookup_expr="icontains",
+    )
+    service = CharFilter(
+        label="Service", field_name="service__skill__name", lookup_expr="icontains"
+    )
 
     class Meta:
         model = Order
-        fields = 'master', 'service'
+        fields = "master", "service"
 
-
-        

@@ -80,12 +80,12 @@ class Service(models.Model):
     price = models.PositiveIntegerField(blank=True, null=True)
     task_time = models.DurationField(blank=True, null=True)
 
-    def __str__(self):
-        return "{} by {}".format(self.skill.name, self.master.user.username)
-
     @classmethod
     def catalog(cls, skill=None):
         return Service.objects.values("skill__name")
+
+    def __str__(self):
+        return "{} by {}".format(self.skill.name, self.master.user.username)
 
 
 class Order(models.Model):

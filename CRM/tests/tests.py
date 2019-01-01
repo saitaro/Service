@@ -1,75 +1,78 @@
 from datetime import datetime, timedelta
 from rest_framework.reverse import reverse as api_reverse
 from rest_framework.test import APITestCase, force_authenticate
-from .factories import MasterFactory, OrderFactory, SkillFactory
+from .factories import MasterFactory, OrderFactory, SkillFactory, ServiceFactory
 from ..models import Order
 from django.contrib.auth.models import User
 from ..serializers import OrderSerializer
 
 
 class OrderTestCase(APITestCase):
-    url = api_reverse('order-list')
+    url = api_reverse("order-list")
 
     def setUp(self):
         self.master1 = MasterFactory()
         self.master2 = MasterFactory()
-        self.client1 = OrderFactory(executor=self.master1).client
-        self.client2 = OrderFactory(executor=self.master2).client
-        self.service1 = OrderFactory(service=self.master1).service
-        self.service2 = OrderFactory(service=self.master2).service
+        self.skill1 = SkillFactory()
+        self.skill2 = SkillFactory()
+        self.service1 = ServiceFactory(master=self.master1, skill=self.skill1)
+        self.service2 = ServiceFactory(master=self.master2, skill=self.skill2)
+        self.order1 = OrderFactory(service=self.service1)
+        self.order2 = OrderFactory(service=self.service2)
+        self.client1 = self.order1.client
+        self.client2 = self.order2.client
 
     def test_masters_orders(self):
         master = self.master1.user
         self.client.force_authenticate(user=master)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
-        self.assertEqual(response.data[0]['executor'], master.pk)
-        self.assertEqual(response.data[1]['executor'], master.pk)
-        
+        self.assertEqual(response.data[0]["service"]["master"], master.username)
+        self.assertEqual(response.data[0]["service"]["master"], master.username)
+
         master = self.master2.user
         self.client.force_authenticate(user=master)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
-        self.assertEqual(response.data[0]['executor'], master.pk)
-        self.assertEqual(response.data[1]['executor'], master.pk)
+        self.assertEqual(response.data[0]["service"]["master"], master.username)
+        self.assertEqual(response.data[0]["service"]["master"], master.username)
 
     def test_clients_orders(self):
         client = self.client1
         self.client.force_authenticate(user=client)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data[0]['client'], client.username)
-        
+        self.assertEqual(response.data[0]["client"], client.username)
+
         client = self.client2
         self.client.force_authenticate(user=client)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data[0]['client'], client.username)
+        self.assertEqual(response.data[0]["client"], client.username)
 
     def test_admin_access(self):
         user = self.client1
         user.is_staff = True
         self.client.force_authenticate(user=user)
         response = self.client.get(self.url)
-        orders = OrderSerializer(Order.objects.all(), many=True,
-                                 context={'request': self.client.request})
+        orders = OrderSerializer(
+            Order.objects.all(), many=True, context={"request": self.client.request}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, orders.data)
-        
+
     def test_unauthorized_access(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json()['detail'], 
-                         'Authentication credentials were not provided.')
+        self.assertEqual(
+            response.json()["detail"], "Authentication credentials were not provided."
+        )
 
     def test_user_post(self):
         user = self.client1
         order = {
-            'service': self.service1.pk,
-            'executor': self.master1.pk,
-            'execution_date': datetime.now() + timedelta(days=1)
+            "service_id": self.service1.pk,
+            "execution_date": datetime.now() + timedelta(days=1),
         }
         self.client.force_authenticate(user=user)
         order_count = Order.objects.count()
@@ -77,92 +80,87 @@ class OrderTestCase(APITestCase):
         self.assertEqual(Order.objects.count(), order_count + 1)
         new_order = Order.objects.last()
         self.assertEqual(new_order.client.username, user.username)
-        self.assertEqual(new_order.service.pk, order['service'])
-        self.assertEqual(new_order.executor.pk, order['executor'])
-        self.assertEqual(new_order.execution_date.ctime(), order['execution_date'].ctime())
-        
+        self.assertEqual(new_order.service.pk, order["service_id"])
+        self.assertEqual(
+            new_order.execution_date.ctime(), order["execution_date"].ctime()
+        )
+
     def test_admin_post(self):
         user = self.client1
         user.is_staff = True
         order = {
-            'service': self.service2.pk,
-            'executor': self.master1.pk,
-            'execution_date': datetime.now() + timedelta(days=1)
+            "service": self.service2.pk,
+            "executor": self.master1.pk,
+            "execution_date": datetime.now() + timedelta(days=1),
         }
         self.client.force_authenticate(user=user)
         response = self.client.post(self.url, order)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json()['detail'],
-                         'You do not have permission to perform this action.')
-        
+        self.assertEqual(
+            response.json()["detail"],
+            "You do not have permission to perform this action.",
+        )
+
     def test_master_post(self):
         user = self.master1.user
         order = {
-            'service': self.service1.pk,
-            'executor': self.master2.pk,
-            'execution_date': datetime.now() + timedelta(days=1)
+            "service": self.service1.pk,
+            "executor": self.master2.pk,
+            "execution_date": datetime.now() + timedelta(days=1),
         }
         self.client.force_authenticate(user=user)
         response = self.client.post(self.url, order)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.json()['detail'],
-                         'You do not have permission to perform this action.')
+        self.assertEqual(
+            response.json()["detail"],
+            "You do not have permission to perform this action.",
+        )
 
     def test_filtered_orders(self):
-        client = self.client1
-        master = self.master1
-        foo = SkillFactory(name='Foo')
-        bar = SkillFactory(name='Bar')
-        OrderFactory(service=foo, client=client, executor=master)
-        OrderFactory(service=foo, client=client)
-        OrderFactory(service=bar, client=client)
-        self.client.force_authenticate(user=client)
-        response = self.client.get(self.url + '?service=Foo&master=' + master.user.username)     
+        foo = self.order1
+        bar = self.order2
+        # OrderFactory(service=foo, client=self.client1)
+        # OrderFactory(service=bar, client=self.client1)
+        self.client.force_authenticate(user=self.client1)
+        response = self.client.get(
+            self.url
+            + "?service={}&master={}".format(
+                foo.service.skill.name, foo.service.master.user.username
+            )
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['service'], foo.pk)
-        self.assertEqual(response.data[0]['executor'], master.pk)
+        self.assertEqual(response.data[0]["service_id"], foo.pk)
+        self.assertEqual(
+            response.data[0]["service"]["master"], foo.service.master.user.username
+        )
 
     def test_searching_orders(self):
         user = self.client1
         user.is_staff = True
-        foo = SkillFactory(name='Comfortably Numb')
-        bar = SkillFactory(name='Portably Null')
+        foo_skill = SkillFactory(name="Comfortably Numb")
+        bar_skill = SkillFactory(name="Portably Null")
+        foo = ServiceFactory(skill=foo_skill)
+        bar = ServiceFactory(skill=bar_skill)
         OrderFactory(service=foo)
         OrderFactory(service=bar)
         self.client.force_authenticate(user=user)
-        
-        response = self.client.get(self.url + '?service=Comfortably+Numb')     
+
+        response = self.client.get(self.url + "?service=Comfortably+Numb")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['service'], foo.pk)
+        self.assertEqual(response.data[0]["service"]["id"], foo.pk)
 
-        response = self.client.get(self.url + '?service_search=ortably+Nu')     
+        response = self.client.get(self.url + "?service=ortably+Nu")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
-        self.assertEqual(response.data[0]['service'], foo.pk)
-        self.assertEqual(response.data[1]['service'], bar.pk)
+        self.assertEqual(response.data[0]["service"]["id"], foo.pk)
+        self.assertEqual(response.data[1]["service"]["id"], bar.pk)
 
 
 class UserTestCase(APITestCase):
-
     def test_user_creation(self):
-        url = api_reverse('register')
-        data = {
-            'username': 'Hitler',
-            'password': 'germanyfirst123'
-        }
+        url = api_reverse("register")
+        data = {"username": "Hitler", "password": "germanyfirst123"}
         self.client.post(url, data=data)
-        self.assertTrue(User.objects.filter(username='Hitler').exists())
-
-
-    def test_user_creation_alt(self):
-        url = api_reverse('user-create')
-        data = {
-            'username': 'Stalin',
-            'password': 'gocommiego'
-        }
-        post = self.client.post(url, data=data)
-        self.assertTrue(User.objects.filter(username='Stalin').exists())
-
-
+        self.assertTrue(User.objects.filter(username="Hitler").exists())

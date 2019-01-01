@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import Company, Skill, Master, Order, Service
 from rest_framework.fields import CurrentUserDefault
+from django.utils import timezone
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -68,14 +69,19 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    client = serializers.CharField(default=serializers.CurrentUserDefault())
-    service = serializers.CharField(source="service.skill.name")
-    price = serializers.IntegerField(source="service.price")
-    master = serializers.CharField(source="service.master")
-    created = serializers.CharField(source="creation_date")
+    client = serializers.CharField(
+        default=serializers.CurrentUserDefault(), read_only=True
+    )
+    service = ServiceSerializer(read_only=True)
+    service_id = serializers.IntegerField(source="service.id")
 
     class Meta:
         model = Order
-        fields = ("client", "service", "master", "price", "created", "execution_date")
-        extra_kwargs = {"executor": {"required": True, "label": "Master"}}
+        fields = "client", "service_id", "service", "execution_date"
 
+    # def create(self, validated_data):
+    #     service_id = validated_data.get("service")["id"]
+    #     print(self, "=================================================")
+    #     validated_data["service"] = Service.objects.get(pk=service_id)
+    #     validated_data["client_id"] = 3
+    #     return Order.objects.create(**validated_data)
