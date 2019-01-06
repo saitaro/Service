@@ -74,23 +74,41 @@ class OrderTestCase(APITestCase):
             "service_id": self.service1.pk,
             "execution_date": datetime.now() + timedelta(days=1),
         }
+        bad_order = {
+            "service_id": 42,
+            "execution_date": datetime.now() + timedelta(days=1),
+        }
+        bad_order_2 = {
+            "service_id": "foobar",
+            "execution_date": datetime.now() + timedelta(days=1),
+        }
         self.client.force_authenticate(user=user)
         order_count = Order.objects.count()
         response = self.client.post(self.url, order)
         self.assertEqual(Order.objects.count(), order_count + 1)
         new_order = Order.objects.last()
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(new_order.client.username, user.username)
         self.assertEqual(new_order.service.pk, order["service_id"])
         self.assertEqual(
             new_order.execution_date.ctime(), order["execution_date"].ctime()
+        )
+        bad_order_response = self.client.post(self.url, bad_order)
+        self.assertEqual(bad_order_response.status_code, 400)
+        self.assertEqual(
+            bad_order_response.json()[0], "No service with id 42 provided."
+        )
+        bad_order_response_2 = self.client.post(self.url, bad_order_2)
+        self.assertEqual(bad_order_response_2.status_code, 400)
+        self.assertEqual(
+            bad_order_response_2.json()["service_id"][0], "A valid integer is required."
         )
 
     def test_admin_post(self):
         user = self.client1
         user.is_staff = True
         order = {
-            "service": self.service2.pk,
-            "executor": self.master1.pk,
+            "service_id": self.service2.pk,
             "execution_date": datetime.now() + timedelta(days=1),
         }
         self.client.force_authenticate(user=user)
@@ -104,8 +122,7 @@ class OrderTestCase(APITestCase):
     def test_master_post(self):
         user = self.master1.user
         order = {
-            "service": self.service1.pk,
-            "executor": self.master2.pk,
+            "service_id": self.service1.pk,
             "execution_date": datetime.now() + timedelta(days=1),
         }
         self.client.force_authenticate(user=user)
@@ -119,8 +136,6 @@ class OrderTestCase(APITestCase):
     def test_filtered_orders(self):
         foo = self.order1
         bar = self.order2
-        # OrderFactory(service=foo, client=self.client1)
-        # OrderFactory(service=bar, client=self.client1)
         self.client.force_authenticate(user=self.client1)
         response = self.client.get(
             self.url
@@ -161,6 +176,6 @@ class OrderTestCase(APITestCase):
 class UserTestCase(APITestCase):
     def test_user_creation(self):
         url = api_reverse("register")
-        data = {"username": "Hitler", "password": "germanyfirst123"}
+        data = {"username": "Feynman", "password": "imustbejoking"}
         self.client.post(url, data=data)
-        self.assertTrue(User.objects.filter(username="Hitler").exists())
+        self.assertTrue(User.objects.filter(username="Feynman").exists())

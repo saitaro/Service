@@ -55,6 +55,7 @@ class Master(models.Model):
     def average_price(self):
         return self.catalog.aggregate(Avg("price"))["price__avg"]
 
+    @property
     @classmethod
     def averages(cls):
         queryset = Master.objects.all()
@@ -82,7 +83,14 @@ class Service(models.Model):
 
     @classmethod
     def catalog(cls, skill=None):
-        return Service.objects.values("skill__name")
+        def average(skill):
+            queryset = cls.objects.filter(skill__name=skill)
+            return queryset.aggregate(Avg("price"))["price__avg"]
+
+        if skill:
+            return average(skill)
+        else:
+            return {skill.name: average(skill.name) for skill in Skill.objects.all()}
 
     def __str__(self):
         return "{} by {}".format(self.skill.name, self.master.user.username)

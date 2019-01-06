@@ -44,23 +44,25 @@ class OrderViewSet(ModelViewSet):
     filterset_class = OrderFilter
     permission_classes = (IsAuthenticated, ClientPermission)
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        service_id = data.get("service")["id"]
-        if not Service.objects.filter(id=service_id).exists():
-            return Response(
-                data={"No service with id %d provided" % service_id},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        data["service"] = Service.objects.get(pk=service_id)
-        data["client_id"] = request.user.id
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
+    """ create() implemented in serializers.OrderSerializer """
+
+    # def create(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     data = serializer.validated_data
+    #     service_id = data.get("service")["id"]
+    #     if not Service.objects.filter(id=service_id).exists():
+    #         return Response(
+    #             data={"No service with id %d provided" % service_id},
+    #             status=status.HTTP_404_NOT_FOUND,
+    #         )
+    #     data["service"] = Service.objects.get(pk=service_id)
+    #     data["client_id"] = request.user.id
+    #     self.perform_create(serializer)
+    #     headers = self.get_success_headers(serializer.data)
+    #     return Response(
+    #         serializer.data, status=status.HTTP_201_CREATED, headers=headers
+    #     )
 
 
 class UserViewSet(CreationMixin, ModelViewSet):

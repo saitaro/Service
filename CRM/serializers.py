@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework import status
+from rest_framework.response import Response
 from .models import Company, Skill, Master, Order, Service
 from rest_framework.fields import CurrentUserDefault
 from django.utils import timezone
@@ -67,10 +69,25 @@ class OrderSerializer(serializers.ModelSerializer):
     client = serializers.CharField(
         default=serializers.CurrentUserDefault(), read_only=True
     )
+    client_id = serializers.IntegerField(source="client.id", read_only=True)
     service = ServiceSerializer(read_only=True)
     service_id = serializers.IntegerField(source="service.id")
 
     class Meta:
         model = Order
-        fields = "client", "service_id", "service", "execution_date"
+        fields = "client", "client_id", "service", "service_id", "execution_date"
+
+    def create(self, validated_data):
+        service_id = validated_data.pop("service")["id"]
+        try:
+            service = Service.objects.get(pk=service_id)
+        except Service.DoesNotExist:
+            raise serializers.ValidationError(
+                code=status.HTTP_404_NOT_FOUND,
+                detail="No service with id %d provided." % service_id,
+            )
+        order = Order.objects.create(
+            **validated_data, service=service, client=self.context["request"].user
+        )
+        return order
 
