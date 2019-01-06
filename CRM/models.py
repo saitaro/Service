@@ -47,19 +47,18 @@ class Master(models.Model):
     class Meta:
         verbose_name_plural = "masters"
 
-    @property
-    def catalog(self):
-        return Service.objects.filter(master=self.pk).values("skill__name", "price")
+    @classmethod
+    def averages(cls):
+        queryset = Master.objects.all()
+        return {master: master.average_price for master in queryset}
 
     @property
     def average_price(self):
         return self.catalog.aggregate(Avg("price"))["price__avg"]
 
     @property
-    @classmethod
-    def averages(cls):
-        queryset = Master.objects.all()
-        return {master: master.average_price for master in queryset}
+    def catalog(self):
+        return Service.objects.filter(master=self.pk).values("skill__name", "price")
 
     def __str__(self):
         return self.user.username
@@ -83,14 +82,10 @@ class Service(models.Model):
 
     @classmethod
     def catalog(cls, skill=None):
-        def average(skill):
-            queryset = cls.objects.filter(skill__name=skill)
-            return queryset.aggregate(Avg("price"))["price__avg"]
-
         if skill:
-            return average(skill)
+            return Skill.objects.get(name=skill).average_price
         else:
-            return {skill.name: average(skill.name) for skill in Skill.objects.all()}
+            return {skill.name: skill.average_price for skill in Skill.objects.all()}
 
     def __str__(self):
         return "{} by {}".format(self.skill.name, self.master.user.username)
