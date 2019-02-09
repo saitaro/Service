@@ -5,5 +5,5 @@ python:
 before_script: pip install pipenv
 
 script:
-  - pipenv install
+  - pipenv install --skip-lock
   - python manage.py test
