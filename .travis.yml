@@ -2,5 +2,8 @@ language: python
 python:
   - "3.6"
 
+before_script: pip install pipenv
+
 script:
+  - pipenv install
   - python manage.py test
