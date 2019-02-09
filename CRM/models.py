@@ -1,9 +1,10 @@
-from django.db import models
-from django.db.models import Q, OuterRef, Subquery, Avg
+from datetime import datetime, timedelta
+
 from django.contrib.auth.models import User
+from django.db import models
+from django.db.models import Avg, OuterRef, Q, Subquery
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from datetime import datetime, timedelta
 from django.utils.timezone import now
 
 
@@ -101,4 +102,3 @@ class Order(models.Model):
 
     def __str__(self):
         return "{} – {} for {}".format(str(self.pk), self.service, self.client)
-
