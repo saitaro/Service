@@ -12,13 +12,13 @@ class Company(models.Model):
     name = models.CharField(max_length=127)
 
     class Meta:
-        verbose_name_plural = "Companies"
+        verbose_name_plural = 'Companies'
 
     def __str__(self):
         return self.name
 
     def service(self):
-        return self.masters.all().values_list("skills__name", flat=True).distinct()
+        return self.masters.all().values_list('skills__name', flat=True).distinct()
 
 
 class Skill(models.Model):
@@ -27,12 +27,12 @@ class Skill(models.Model):
     @property
     def options(self):
         return Service.objects.filter(skill=self.pk).values(
-            "master__user__username", "price"
+            'master__user__username', 'price'
         )
 
     @property
     def average_price(self):
-        return self.options.aggregate(Avg("price"))["price__avg"]
+        return self.options.aggregate(Avg('price'))['price__avg']
 
     def __str__(self):
         return self.name
@@ -40,26 +40,26 @@ class Skill(models.Model):
 
 class Master(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    skills = models.ManyToManyField("Skill", through="Service", related_name="masters")
+    skills = models.ManyToManyField('Skill', through='Service', related_name='masters')
     company = models.ForeignKey(
-        "Company", null=True, on_delete=models.SET_NULL, related_name="masters"
+        'Company', null=True, on_delete=models.SET_NULL, related_name='masters'
     )
 
     class Meta:
-        verbose_name_plural = "masters"
+        verbose_name_plural = 'masters'
 
     @classmethod
     def averages(cls):
         queryset = Master.objects.all()
         return {master: master.average_price for master in queryset}
 
-    @property
+    @property 
     def average_price(self):
-        return self.catalog.aggregate(Avg("price"))["price__avg"]
+        return self.catalog.aggregate(Avg('price'))['price__avg']
 
     @property
     def catalog(self):
-        return Service.objects.filter(master=self.pk).values("skill__name", "price")
+        return Service.objects.filter(master=self.pk).values('skill__name', 'price')
 
     def __str__(self):
         return self.user.username
@@ -73,10 +73,10 @@ class Master(models.Model):
 
 class Service(models.Model):
     master = models.ForeignKey(
-        "Master", related_name="services", on_delete=models.CASCADE
+        'Master', related_name='services', on_delete=models.CASCADE
     )
     skill = models.ForeignKey(
-        "Skill", blank=True, null=True, related_name="skills", on_delete=models.CASCADE
+        'Skill', blank=True, null=True, related_name='skills', on_delete=models.CASCADE
     )
     price = models.PositiveIntegerField(blank=True, null=True)
     task_time = models.DurationField(blank=True, null=True)
@@ -89,16 +89,16 @@ class Service(models.Model):
             return {skill.name: skill.average_price for skill in Skill.objects.all()}
 
     def __str__(self):
-        return "{} by {}".format(self.skill.name, self.master.user.username)
+        return f'{self.skill.name} by {self.master.user.username}'
 
 
 class Order(models.Model):
-    client = models.ForeignKey(User, related_name="orders", on_delete=models.CASCADE)
+    client = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE)
     service = models.ForeignKey(
-        "Service", related_name="orders", on_delete=models.CASCADE
+        'Service', related_name='orders', on_delete=models.CASCADE
     )
     creation_date = models.DateTimeField(auto_now_add=True)
     execution_date = models.DateTimeField(blank=False)
 
     def __str__(self):
-        return "{} – {} for {}".format(str(self.pk), self.service, self.client)
+        return f'{self.pk} – {self.service} for {self.client}'

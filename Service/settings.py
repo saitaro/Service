@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "CRM",
     "oauth2_provider",
     "rest_framework",
+    "rest_framework.authtoken",
     "django_filters",
     "rest_framework_swagger",
     "corsheaders",
