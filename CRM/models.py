@@ -18,7 +18,8 @@ class Company(models.Model):
         return self.name
 
     def service(self):
-        return self.masters.all().values_list('skills__name', flat=True).distinct()
+        return self.masters.all().select_related('skills', 'name') \
+                           .values_list('skills__name', flat=True).distinct()
 
 
 class Skill(models.Model):
@@ -26,9 +27,8 @@ class Skill(models.Model):
 
     @property
     def options(self):
-        return Service.objects.filter(skill=self.pk).values(
-            'master__user__username', 'price'
-        )
+        return Service.objects.filter(skill=self.pk).values('master__user__username', 
+                                                            'price')
 
     @property
     def average_price(self):
@@ -41,9 +41,8 @@ class Skill(models.Model):
 class Master(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     skills = models.ManyToManyField('Skill', through='Service', related_name='masters')
-    company = models.ForeignKey(
-        'Company', null=True, on_delete=models.SET_NULL, related_name='masters'
-    )
+    company = models.ForeignKey('Company', related_name='masters', null=True, 
+                                on_delete=models.SET_NULL)
 
     class Meta:
         verbose_name_plural = 'masters'
@@ -72,12 +71,9 @@ class Master(models.Model):
 
 
 class Service(models.Model):
-    master = models.ForeignKey(
-        'Master', related_name='services', on_delete=models.CASCADE
-    )
-    skill = models.ForeignKey(
-        'Skill', blank=True, null=True, related_name='skills', on_delete=models.CASCADE
-    )
+    master = models.ForeignKey('Master', related_name='services', on_delete=models.CASCADE)
+    skill = models.ForeignKey('Skill', related_name='skills', on_delete=models.CASCADE,
+                              blank=True, null=True)
     price = models.PositiveIntegerField(blank=True, null=True)
     task_time = models.DurationField(blank=True, null=True)
 
