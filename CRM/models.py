@@ -18,7 +18,7 @@ class Company(models.Model):
         return self.name
 
     def service(self):
-        return self.masters.all().select_related('skills', 'name') \
+        return self.masters.select_related('skills', 'name') \
                            .values_list('skills__name', flat=True).distinct()
 
 
@@ -29,10 +29,9 @@ class Skill(models.Model):
     def options(self):
         return Service.objects.filter(skill=self.pk).values('master__user__username', 
                                                             'price')
-
     @property
     def average_price(self):
-        return self.options.aggregate(Avg('price'))['price__avg']
+        return self.options.aggregate(avg=Avg('price'))['avg']
 
     def __str__(self):
         return self.name
@@ -90,9 +89,7 @@ class Service(models.Model):
 
 class Order(models.Model):
     client = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE)
-    service = models.ForeignKey(
-        'Service', related_name='orders', on_delete=models.CASCADE
-    )
+    service = models.ForeignKey('Service', related_name='orders', on_delete=models.CASCADE)
     creation_date = models.DateTimeField(auto_now_add=True)
     execution_date = models.DateTimeField(blank=False)
 
